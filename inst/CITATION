@@ -1,0 +1,18 @@
+citHeader("To cite package 'PRROC' in publications use:")
+     
+     year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
+     vers <- paste("R package version", meta$Version)
+     
+     citEntry(entry="article",
+              title = "Area under Precision-Recall Curves for Weighted and Unweighted Data",
+              author = personList(as.person("Jens Keilwagen"),
+                                  as.person("Ivo Grosse"),
+                                  as.person("Jan Grau")),
+              year = 2014,
+              volume = 9,
+              number = 3,
+              note = vers,
+     		  journal = "PLOS ONE",
+              textVersion =
+              paste("Jens Keilwagen, Ivo Grosse and Jan Grau (2014). Area under Precision-Recall Curves for Weighted and Unweighted Data. PLOS ONE (9) 3. ",
+                    vers, ".", sep=""))

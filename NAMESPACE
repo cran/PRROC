@@ -1,0 +1,3 @@
+export(pr.curve,roc.curve);
+S3method(print,PRROC);
+S3method(plot,PRROC);
