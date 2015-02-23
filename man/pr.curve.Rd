@@ -66,7 +66,7 @@ In this case, the classification scores for all data points need to be provided 
 \value{
 	\item{type}{always \code{"PR"}}
 	\item{auc.integral}{area under the curve computed by integration of the piecewise function}
-	\item{auc.davis.goadrich}{area under the curve computed using the interpolation of Davis \& Goadrich (2006). Is \code{NA} if weights are provided and different from \code{1}.}
+	\item{auc.davis.goadrich}{area under the curve computed using the interpolation of Davis & Goadrich (2006). Is \code{NA} if weights are provided and different from \code{1}.}
 	\item{curve}{the PR curve as a matrix, where the first column contains recall, the second contains precision, and the third contains the corresponding threshold on the scores.}
   \item{max}{the maximum PR curve (if \code{max.compute=TRUE})}
   \item{min}{the minimum PR curve (if \code{min.compute=TRUE})}
@@ -74,9 +74,9 @@ In this case, the classification scores for all data points need to be provided 
 }
 \references{
 J. Davis and M. Goadrich. The relationship between precision-recall and ROC curves.
-In \emph{ ICML '06: Proceedings of the 23rd international conference on Machine learning}, pages 233--240, New York, NY, USA, 2006. ACM.
+In \emph{Proceedings of the 23rd International Conference on Machine Learning}, pages 233--240, New York, NY, USA, 2006. ACM.
 
-J. Keilwagen, I. Grosse, and J. Grau. Area under Precision-Recall Curves for Weighted and Unweighted Data, PLOS ONE (9) 3, 2014.
+J. Keilwagen, I. Grosse, and J. Grau. Area under precision-recall curves for weighted and unweighted data, PLOS ONE (9) 3, 2014.
 
 }
 \author{
@@ -146,6 +146,5 @@ plot(pr, max.plot = TRUE, min.plot = TRUE, rand.plot = TRUE, fill.area = TRUE,
   color="red", auc.main=FALSE)
 # and add the curve for the second classifier
 plot(pr.2, add=TRUE, color="green")
-
 }
 \keyword{ classif }

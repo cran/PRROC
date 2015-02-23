@@ -67,7 +67,7 @@ In this case, the classification scores for all data points need to be provided 
   \item{rand}{the ROC curve of a random classifier (if \code{rand.compute=TRUE})}
 }
 \references{
-J. Keilwagen, I. Grosse, and J. Grau. Area under Precision-Recall Curves for Weighted and Unweighted Data, PLOS ONE (9) 3, 2014.
+J. Keilwagen, I. Grosse, and J. Grau. Area under precision-recall curves for weighted and unweighted data, PLOS ONE (9) 3, 2014.
 
 }
 \author{
@@ -137,8 +137,6 @@ plot(roc, max.plot = TRUE, min.plot = TRUE, rand.plot = TRUE, fill.area = TRUE,
   color="red", auc.main=FALSE)
 # and add the curve for the second classifier
 plot(roc.2, add=TRUE, color="green")
-
 }
-% Add one or more standard keywords, see file 'KEYWORDS' in the
-% R documentation directory.
+% Add one or more standard keywords, see file 'KEYWORDS' in the R documentation directory.
 \keyword{ classif }

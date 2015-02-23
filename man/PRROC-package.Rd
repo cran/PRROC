@@ -23,11 +23,11 @@ Maintainer: Jan Grau <grau@informatik.uni-halle.de>
 }
 \references{
 J. Davis and M. Goadrich. The relationship between precision-recall and ROC curves.
-In \emph{ ICML '06: Proceedings of the 23rd international conference on Machine learning}, pages 233--240, New York, NY, USA, 2006. ACM.
+In \emph{Proceedings of the 23rd International Conference on Machine Learning}, pages 233--240, New York, NY, USA, 2006. ACM.
 
 T. Fawcett, An introduction to ROC analysis, Pattern Recognition Letters (27) 8, 861-874, 2006.
 
-J. Keilwagen, I. Grosse, and J. Grau. Area under Precision-Recall Curves for Weighted and Unweighted Data, PLOS ONE (9) 3, 2014.
+J. Keilwagen, I. Grosse, and J. Grau. Area under precision-recall curves for weighted and unweighted data, PLOS ONE (9) 3, 2014.
 }
 \keyword{ package }
 \seealso{

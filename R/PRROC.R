@@ -48,14 +48,6 @@ check <- function( n, weights ) {
 	}
 }
 
-my.sum<-function(x){
-	sum <-0;
-	for(y in x){
-		sum <- sum + y;
-	}
-	sum;
-}
-
 compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores.class0, weights.class0 = NULL, 
 						weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, curve = FALSE, 
 						minStepSize=min(1,ifelse(is.null(weights.class0),1,sum(weights.class0)/100)),
@@ -91,8 +83,8 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 	nw0 <- is.null( weights.class0 );
 	nw1 <- is.null( weights.class1 );
 	
-	pos <- ifelse( nw0, m, my.sum( weights.class0 ) );
-	neg <- ifelse( nw1, d, my.sum( weights.class1 ) );
+	pos <- ifelse( nw0, m, sum( weights.class0 ) );
+	neg <- ifelse( nw1, d, sum( weights.class1 ) );
 	
 	while( ( j<d ) & sorted.scores.class0[ i + 1 ] > sorted.scores.class1[ j + 1 ] ){
 		tn <- tn + ifelse( nw1, 1, weights.class1[ j + 1 ] );
@@ -198,7 +190,8 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 			h <- ( tn - tn.old ) / ( fn - fn.old );
 			a <- 1 + h;
 			b <- ( neg - tn - h * ( pos - fn ) ) / pos;
-			if( b != 0 ){
+
+			if( !isTRUE(all.equal(b, 0)) ){
 				auc.integral <- auc.integral + ( p.b - p.a - b / a * ( log( a * p.b + b ) - log( a * p.a + b ) ) ) / a;
 			}else{
 				auc.integral <- auc.integral + ( p.b - p.a ) / a;

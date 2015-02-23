@@ -23,6 +23,7 @@
 \setlength{\parindent}{0cm}
 
 \begin{document}
+\bibliographystyle{plain}
 \SweaveOpts{concordance=TRUE}
 \setkeys{Gin}{width=0.6\textwidth}
 
@@ -31,13 +32,15 @@
 
 <<echo=FALSE>>=
 library(PRROC)
+set.seed(127)
 @
 
 This package computes the areas under the precision-recall (PR) and ROC curve for weighted (e.g., soft-labeled) and unweighted data. In contrast to other implementations, the interpolation between points of the PR curve is done by a non-linear piecewise function. In addition to the areas under the curves, the curves themselves can also be computed and plotted by a specific S3-method.
+Users should be aware of the small sample size problem~\cite{Hanczar10small-sample}.
 
 \section{ROC and PR curves for hard-labeled data}
 
-We first consider an example, where the classification task is to distinguish data points originating from two different classes (termend positive/negative or foreground/background). In the example, we assume that the test data set contains 300 data points from the foreground (positive) and 500 data points from the background (negative) class.
+We first consider an example, where the classification task is to distinguish data points originating from two different classes (termed positive/negative or foreground/background). In the example, we assume that the test data set contains 300 data points from the foreground (positive) and 500 data points from the background (negative) class.
 
 To make this example running R code, we generate classification scores by drawing values from two different Gaussian distributions:
 <<>>=
@@ -63,7 +66,7 @@ The result for the AUC-PR object is similar
 <<>>=
 pr
 @
-but prints out two different AUC-PR values, one using the interpolation of Davis \& Goadrich (2006) and one using the continuous interpolation of Boyd \emph{et al.} (2013) and Keilwagen \emph{et al.} (2014).
+but prints out two different AUC-PR values, one using the interpolation of Davis \& Goadrich~\cite{davis06the-relationship} and one using the continuous interpolation of Boyd \emph{et al.}~\cite{boyd13area} and Keilwagen \emph{et al.}~\cite{keilwagen14area}.
 
 To also compute the ROC and the PR curve, we add a parameter \texttt{curve = TRUE} to both functions:
 <<>>=
@@ -257,7 +260,7 @@ plot(wpr2, add = TRUE, color = 3);
 
 Subsequently, low-level R plotting functions like adding a legend with \texttt{legend} may be applied.
 
-\section{Parameters of the \texttt{plot} funktion}
+\section{Parameters of the \texttt{plot} function}
 
 The \texttt{plot} function of the PRROC package has several additional parameters controlling the appearance of ROC and PR curve plots.
 
@@ -327,5 +330,90 @@ plot(wpr, rand.plot = TRUE, fill.area = TRUE,
 <<plot5>>
 @
 \end{center}
+
+
+\section{Plotting curves using other plot packages}
+
+We can obtain the points of the ROC or PR curve, e.g., for plotting using other packages:
+<<>>=
+curve.points<-wpr$curve
+@
+
+The resulting matrix contains three columns. In case of an ROC curve, the first column contains the false positive rates, the second column contains the corresponding sensitivities, and the third column contains the corresponding classification thresholds. In case of a PR curve, the first column contains the recalls (sensitivities), the second column contains the corresponding precisions, and the third column contains the corresponding classification thresholds, for instance
+<<>>=
+curve.points[1:5,]
+@
+
+
+Using this matrix, ROC and PR curves can be plotted using independently of \texttt{plot.PRROC}.
+For instance, we can plot the PR curve from the last section using the standard \texttt{plot} command
+
+<<label=plot6>>=
+plot(curve.points[,1],curve.points[,2],
+	 xlab="Recall",ylab="Precision",t="l")
+@
+
+\begin{center}
+<<fig=TRUE,echo=FALSE>>=
+<<plot6>>
+@
+\end{center}
+
+or using more sophisticated plotting routines, e.g., from \texttt{ggplot2}~\cite{wickham09ggplot2}:
+
+<<echo=FALSE>>=
+library(ggplot2)
+@
+
+<<label=plot7>>=
+( 
+ggplot(data.frame(wpr$curve),aes(x=X1,y=X2,color=X3)) 
+	+ geom_line() 
+	+ labs(x="Recall",y="Precision",
+		   title=format(wpr$auc.integral,digits=3),
+		   colour="Threshold") 
+	+ scale_colour_gradient2(low="red", mid="orange",high="yellow")
+)
+@
+
+\begin{center}
+<<fig=TRUE,echo=FALSE>>=
+<<plot7>>
+@
+\end{center}
+
+\begin{thebibliography}{5}
+
+\bibitem{Hanczar10small-sample}
+B.~Hanczar, J.~Hua, C.~Sima, J.~Weinstein, M.~L.~Bittner, and E.~R.~Dougherty.
+\newblock Small- Sample Precision of ROC-related Estimates.
+\newblock {\em Bioinformatics}, 26(6), 822-830, 2010.
+
+\bibitem{davis06the-relationship}
+J.~Davis and M.~Goadrich.
+\newblock The relationship between precision-recall and {ROC} curves.
+\newblock In {\em {Proceedings of the 23rd International Conference on Machine
+  Learning}}, pages 233--240, New York, NY, USA, 2006. ACM.
+
+\bibitem{boyd13area}
+K.~Boyd, K.~Eng, and C.~Page.
+\newblock Area under the precision-recall curve: Point estimates and confidence
+  intervals.
+\newblock In H.~Blockeel, K.~Kersting, S.~Nijssen, and F.~{\v Z}elezn{\'y},
+  editors, {\em Machine Learning and Knowledge Discovery in Databases}, volume
+  8190 of {\em Lecture Notes in Computer Science}, pages 451--466. Springer
+  Berlin Heidelberg, 2013.
+
+\bibitem{keilwagen14area}
+J.~Keilwagen, I.~Grosse, and J.~Grau.
+\newblock Area under precision-recall curves for weighted and unweighted data.
+\newblock {\em PLoS ONE}, 9(3):e92209, 03 2014.
+
+\bibitem{wickham09ggplot2}
+H.~Wickham.
+\newblock {\em ggplot2: elegant graphics for data analysis}.
+\newblock Springer New York, 2009.
+
+\end{thebibliography}
 
 \end{document}
