@@ -1,7 +1,7 @@
 pr.curve<-function( scores.class0, scores.class1=scores.class0, weights.class0=NULL, 
-		weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, sorted = FALSE, curve = FALSE, 
-		minStepSize=min(1,ifelse(is.null(weights.class0),1,sum(weights.class0)/100)),
-		max.compute=F, min.compute=F, rand.compute=F){
+					weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, sorted = FALSE, curve = FALSE, 
+					minStepSize=min(1,ifelse(is.null(weights.class0),1,sum(weights.class0)/100)),
+					max.compute=F, min.compute=F, rand.compute=F, dg.compute=T){
 	if(!sorted){
 		o0<-order(scores.class0);
 		scores.class0<-scores.class0[o0];
@@ -14,13 +14,15 @@ pr.curve<-function( scores.class0, scores.class1=scores.class0, weights.class0=N
 			weights.class1<-weights.class1[o1];
 		}
 	}
-	compute.pr(scores.class0,scores.class1,weights.class0,weights.class1,curve,minStepSize,max.compute,min.compute,rand.compute);
+	compute.pr(scores.class0,scores.class1,weights.class0,weights.class1,curve,minStepSize,max.compute,min.compute,rand.compute,dg.compute);
 }
 
 
+
+
 roc.curve<-function( scores.class0, scores.class1=scores.class0, weights.class0=NULL, 
-		weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, sorted = FALSE, curve = FALSE, 
-		max.compute=F, min.compute=F, rand.compute=F){
+					 weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, sorted = FALSE, curve = FALSE, 
+					 max.compute=F, min.compute=F, rand.compute=F){
 	if(!sorted){
 		o0<-order(scores.class0);
 		scores.class0<-scores.class0[o0];
@@ -48,17 +50,19 @@ check <- function( n, weights ) {
 	}
 }
 
+
+
 compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores.class0, weights.class0 = NULL, 
 						weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, curve = FALSE, 
 						minStepSize=min(1,ifelse(is.null(weights.class0),1,sum(weights.class0)/100)),
-						max.compute=F, min.compute=F, rand.compute=F ){
-	
+						max.compute=F, min.compute=F, rand.compute=F, dg.compute=FALSE ){
+
 	check( length(sorted.scores.class0), weights.class0 );
 	check( length(sorted.scores.class1), weights.class1 );
 	
 	if( !is.null(sorted.scores.class1) & ( length(sorted.scores.class0) != length(sorted.scores.class1) | 
-			suppressWarnings( sum(sorted.scores.class0 != sorted.scores.class1) > 0 ) 
-		) & is.null(weights.class0) & is.null(weights.class1) ){
+										   suppressWarnings( sum(sorted.scores.class0 != sorted.scores.class1) > 0 ) 
+	) & is.null(weights.class0) & is.null(weights.class1) ){
 		weights.class0<-c(rep(1,length(sorted.scores.class0)),rep(0,length(sorted.scores.class1)));
 		sorted.scores.class0<-c(sorted.scores.class0,sorted.scores.class1);
 		o0<-order(sorted.scores.class0);
@@ -66,188 +70,134 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 		weights.class0<-weights.class0[o0];
 		weights.class1<-1-weights.class0;
 		sorted.scores.class1<-sorted.scores.class0;
-	}
 		
-	davis.and.goadrich <- ( length(sorted.scores.class0) == length(sorted.scores.class1) & 
+		all.scores<-sorted.scores.class0;
+		all.weights.pos<-weights.class0;
+		all.weights.neg<-weights.class1;
+	}else{
+		if(is.null(weights.class0)){
+			weights.class0<-rep(1,length(sorted.scores.class0))
+		}
+		if(is.null(weights.class1)){
+			weights.class1<-rep(1,length(sorted.scores.class1))
+		}
+	
+		all.scores<-c(sorted.scores.class0,sorted.scores.class1);
+		all.weights.pos<-c(weights.class0,rep(0,length(sorted.scores.class1)));
+		all.weights.neg<-c(rep(0,length(sorted.scores.class0)),weights.class1);
+	}
+	
+	
+	davis.and.goadrich <- dg.compute & ( length(sorted.scores.class0) == length(sorted.scores.class1) & 
 								suppressWarnings( sum( sorted.scores.class0 != sorted.scores.class1 ) == 0 ) & 
 								length(weights.class0) == length(weights.class1) &
 								suppressWarnings( sum( weights.class0 != (1 - weights.class1) ) == 0 ) &
 								sum(weights.class0 != 0 & weights.class0 != 1)==0);
-								
-		#( is.null( weights.class0 ) | sum( weights.class0 != 1 ) == 0 ) & ( is.null( weights.class1 ) | sum( weights.class1 != 1 ) == 0 );
+	
+	o<-order(all.scores,decreasing = T);
+	all.scores<-all.scores[o]
+	all.weights.pos<-all.weights.pos[o];
+	all.weights.neg<-all.weights.neg[o];
+	
+	cum.weights.pos<-cumsum(all.weights.pos);
+	cum.weights.neg<-cumsum(all.weights.neg);
+	cum.use<-c(all.scores[-length(all.scores)]!=all.scores[-1],TRUE)
+	
+	all.scores<-all.scores[cum.use]
+	cum.weights.pos<-cum.weights.pos[cum.use];
+	cum.weights.neg<-cum.weights.neg[cum.use];
+	
+	
+	r.fg<-sum(all.weights.pos);
+	tp<-cum.weights.pos
+	fp<-cum.weights.neg;
+	tp.prev<-c(0,cum.weights.pos[ -length(cum.weights.pos) ])
+	fp.prev<-c(0,cum.weights.neg[ -length(cum.weights.neg) ])
 
-	i.old <- 0; j.old <- 0; i <- 0; j <- 0; d <- length( sorted.scores.class1 ); m <- length( sorted.scores.class0 );
-	help1 <- 0; help2 <- 0;
-	auc.GD <- ifelse(davis.and.goadrich,0,NA); auc.integral <- 0; fn <- 0; tn <- 0;
+	h<-(fp-fp.prev)/(tp-tp.prev);
+	a<-1+h;
+	b<-(fp.prev-h*tp.prev)/r.fg;
+	h[tp==tp.prev]<-1;
+	a[tp==tp.prev]<-1;
+	b[tp==tp.prev]<-0;
 	
-	nw0 <- is.null( weights.class0 );
-	nw1 <- is.null( weights.class1 );
+	v<-( tp/r.fg - tp.prev/r.fg - b / a * ( log( a * tp/r.fg + b ) - log( a * tp.prev/r.fg + b ) ) ) / a;
+	v2<-( tp/r.fg - tp.prev/r.fg ) / a;
+	v[b==0]<-v2[b==0]
 	
-	pos <- ifelse( nw0, m, sum( weights.class0 ) );
-	neg <- ifelse( nw1, d, sum( weights.class1 ) );
-	
-	while( ( j<d ) & sorted.scores.class0[ i + 1 ] > sorted.scores.class1[ j + 1 ] ){
-		tn <- tn + ifelse( nw1, 1, weights.class1[ j + 1 ] );
-		j <- j + 1;
-	}
-	p <- c( ( pos - fn ) / pos, ( pos - fn ) / ( pos - fn + neg - tn ), sorted.scores.class0[ i + 1 ] );
-	ci <- 1;
-	if( curve ){
-		list.curve <- create.curve( length( sorted.scores.class0 ) + length( sorted.scores.class1 ) );
-		list.curve <- append.to.curve( list.curve, p, ci );
-		ci <- ci + 1;
-	}else{
-		list.curve <- NULL;
-	}
-	
-	unique <- !( j < d & sorted.scores.class0[ i + 1 ] == sorted.scores.class1[ j + 1 ] );
-	from.motif <- unique;
-	
-	while( i< m & j < d ){
-		i.old <- i;
-		j.old <- j;
-		tn.old <- tn;
-		fn.old <- fn;
+	vals<-v
+	auc.integral<-sum(vals)
+	auc.dg<-NA;
+
+	if(davis.and.goadrich){
 		
-		if( !unique || from.motif ){
-			while( i + 1 < m & sorted.scores.class0[ i + 1 ] == sorted.scores.class0[ i + 2 ] ){
-				fn <- fn + ifelse( nw0, 1, weights.class0[ i + 1 ] );
-				i <- i + 1;
-			}
-			fn <- fn + ifelse( nw0, 1, weights.class0[ i + 1 ] );
-			i <- i + 1;
-		}						
-		if( !unique || !from.motif ){
-			while( j + 1 < d & sorted.scores.class1[ j + 1 ] == sorted.scores.class1[ j + 2 ] ){
-				tn <- tn + ifelse( nw1, 1, weights.class1[ j + 1 ] );
-				j <- j + 1;
-			}
-			tn <- tn + ifelse( nw1, 1, weights.class1[ j + 1 ] );
-			j <- j + 1;
-		}
-		score<-0;
-		if( i < m & j < d ){
-			if( sorted.scores.class0[ i + 1 ] == sorted.scores.class1[ j + 1 ] ){
-				unique <- F;
-				score <- sorted.scores.class0[ i + 1 ];
-			}else{
-				unique <- T;
-				if( sorted.scores.class0[ i + 1 ] < sorted.scores.class1[ j + 1 ] ){
-					from.motif <- T;
-					score <- sorted.scores.class0[ i + 1 ];
-				}else{
-					from.motif <- F;
-					score <- sorted.scores.class1[ j + 1 ];
-				}
-			}
-		} else {
-			if( i < m ) {
-				score <- sorted.scores.class0[ i + 1 ];
-			} else if( j < d ) {
-				score <- sorted.scores.class1[ j + 1 ];
-			} else {
-				#i=m, j=d
-				max = max(sorted.scores.class0[ m ],sorted.scores.class1[ d ]);
-				score = max; #+ 0.01*( max - min(sorted.scores.class0[ 1 ],sorted.scores.class1[ 1 ]) ); #max + arbitrary offset
-			}
-		}
-		
-		if( fn == fn.old ) {#i == i.old ){
-			old.p<-p;
-			p <- c( p[ 1 ], ( pos - fn ) / ( pos - fn + neg - tn ), score );
-			if(is.nan(p[2])){
-				p<-old.p;
-			}
-			if( curve ){
-				list.curve <- append.to.curve( list.curve, p, ci );
-				ci <- ci + 1;
-			}
+		min.mat<-cbind(tp.prev,tp,fp.prev,fp);
+
+		idxs<-which(tp-tp.prev>1&tp/(tp+fp)!=tp.prev/(tp.prev+fp.prev));
+		if(length(idxs)>0){
+			m<-matrix(min.mat[-idxs,],ncol=ncol(min.mat));
 		}else{
-			p.b <- p[ 1 ];
-			p.a <- ( pos - fn ) / pos;
-			
-			if( davis.and.goadrich ){
-				if( i < m | j < d ){# TODO
-					prop.term <- ( tn - tn.old ) / ( fn - fn.old );
-					h1 <- p[ 1 ]; h2 <- p[ 2 ];
-					c <- fn.old + 1;
-					help.j <- tn.old + prop.term;
-					while( c <= fn ){
-						help1 <- (pos - c) / pos;
-						help2 <- (pos - c) / ( pos - c + neg - help.j );
-						help.j <- help.j + prop.term;
-						auc.GD <- auc.GD + ( h2 + help2 ) / 2 * ( h1 - help1 );
-						#print(c(1,auc.GD,i=i.v,m=pos,j=j.v,d=neg,c=c,i.old=i.v.o,j.old=j.v.o))
- 						h1 <- help1;
- 						h2 <- help2;
-						c <- c + 1;
-					}
-				}else{
-					auc.GD <- auc.GD + p[ 2 ] * p[ 1 ];
-				}
-			}
-			
-			h <- ( tn - tn.old ) / ( fn - fn.old );
-			a <- 1 + h;
-			b <- ( neg - tn - h * ( pos - fn ) ) / pos;
+			m<-min.mat
+		}
+		
+		auc.dg<-(m[,2]-m[,1])/r.fg * (m[,1]/(m[,1]+m[,3]) + m[,2]/(m[,2]+m[,4]))/2;
+		if(is.nan(auc.dg[1])){
+			auc.dg[1]<-(m[1,2]-m[1,1])/r.fg * (m[1,2]/(m[1,2]+m[1,4]));
+		}
 
-			if( !isTRUE(all.equal(b, 0)) ){
-				auc.integral <- auc.integral + ( p.b - p.a - b / a * ( log( a * p.b + b ) - log( a * p.a + b ) ) ) / a;
-			}else{
-				auc.integral <- auc.integral + ( p.b - p.a ) / a;
-			}
-			
-			prop.term <- min( ( fn - fn.old ) / ( i - i.old ), minStepSize );
-			h <- h*prop.term;
-			help.i <- fn.old + prop.term;
-			i.old <- i.old + 1;
-			help.j <- tn.old + h;
-			k=1;
-			while( help.i < fn ){
-				p <- c( ( pos - help.i ) / pos, ( pos - help.i ) / ( pos - help.i + neg - help.j ), score );#interpolate score?
-				if( curve ){
-					list.curve <- append.to.curve( list.curve, p, ci );
-					ci <- ci + 1;
-				}
-				k=k+1;
-				help.j <- tn.old + k*h;
-				help.i <- fn.old + k*prop.term;
-			}
-			if( p.a != p[ 1 ] ){
-				temp <- ( pos - fn ) / ( pos - fn + neg - tn );
-				if(is.nan(temp)){
-					temp <- p[2];
-				}
-				p <- c( p.a, temp, score );
-				if( curve ){
-					list.curve <- append.to.curve( list.curve, p, ci );
-					ci <- ci + 1;
-				}
-			}
-		}		
+		diff<-tp-tp.prev;
+		h2<-(fp-fp.prev)/diff;
+		
+		if(length(idxs)>0){
+		
+			temp.seq<-sapply(1:max(diff[idxs]),function(i){seq(0,i)})
+				
+			m<-sapply(idxs,function(i){
+				x<-temp.seq[[tp[i]-tp.prev[i]]];
+				prcs<-(tp.prev[i]+x)/(tp.prev[i]+x+fp.prev[i]+h2[i]*x)
+				sum( 1/r.fg*(prcs[-1]+prcs[-length(prcs)])/2 )
+	
+			})
+			auc.dg<-sum(c(auc.dg,m));
+		}else{
+			auc.dg<-sum(auc.dg);
+		}
+		
 	}
 	
-	if( i < m ){
-		help1 <- 0;
-		if( davis.and.goadrich ){
-			auc.GD <- auc.GD + p[ 2 ] * ( p[ 1 ] - help1 );
-		}
-		
-		auc.integral <- auc.integral + p[ 2 ] * ( p[ 1 ] - help1 );
-		
-		p <- c( help1, p[ 2 ], sorted.scores.class0[ i + 1 ] );
-		if( curve ){
-			list.curve <- append.to.curve( list.curve, p, ci );
-			ci <- ci + 1;
-		}
-	}
 	if(curve){
-		list.curve<-shrink.curve( list.curve );
-	#	list.curve<-rbind(c(list.curve[1,1],list.curve[1,2],min(sorted.scores.class0,sorted.scores.class1)),
-	#					  list.curve,
-	#					  c(list.curve[nrow(list.curve),1],list.curve[nrow(list.curve),2],max(sorted.scores.class0,sorted.scores.class1)))
+		minStepSize.2<-minStepSize/r.fg
+		min.curve<-cbind(tp/r.fg,tp/(tp+fp),all.scores)
+	#	print(min.curve)
+		idxs<-which((tp-tp.prev)/r.fg>minStepSize.2 & tp/(tp+fp)!=tp.prev/(tp.prev+fp.prev))
+	#	idxs<-which((tp-tp.prev)/r.fg>minStepSize)
+		idxs<-idxs[ idxs>1 ];
+	#	print(idxs)
+		if(length(idxs)>0){
+			m<-sapply(idxs,function(i){
+				x<-seq(0,min.curve[i,1]-min.curve[i-1,1],by = minStepSize.2);
+				sns<-min.curve[i-1,1]+x;
+				prcs<- ( min.curve[i-1,1]+x ) / ( min.curve[i-1,1]+x + fp[i-1]/r.fg + h[i]*x )
+				temp<-rbind(sns,prcs,rep(all.scores[i],length(x)))
+				temp
+			})
+			m<-matrix(unlist(m),ncol=3,byrow=T)
+			
+			m<-rbind(min.curve,m);
+			
+		}else{
+			m<-min.curve
+		}
+		m<-m[ order(m[,1],-m[,3],decreasing = T), ]
+		m<-rbind(c(1,m[1,2:3]),m,c(0,m[nrow(m),2:3]))
+		
+		dimnames(m)<-c(NULL,NULL)
+				
+		res<-list( type = "PR", auc.integral = auc.integral, auc.davis.goadrich = auc.dg, curve=m );
+	}else{
+		res<-list( type = "PR", auc.integral = auc.integral, auc.davis.goadrich = auc.dg );
 	}
-	res<-list( type = "PR", auc.integral = auc.integral, auc.davis.goadrich = auc.GD, curve=list.curve );
+
 	
 	if(max.compute){
 		scores0<-NULL;
@@ -264,7 +214,7 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 		}
 		
 		max.res<-pr.curve( scores.class0=scores0, scores.class1=scores1,weights.class0=weights.class0,
-					weights.class1=weights.class1,curve=curve,minStepSize=minStepSize);
+						   weights.class1=weights.class1,curve=curve,minStepSize=minStepSize,dg.compute=dg.compute);
 		res<-c(res,list(max=max.res));
 	}
 	
@@ -283,7 +233,7 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 		}
 		
 		min.res<-pr.curve( scores.class0=scores0, scores.class1=scores1,weights.class0=weights.class0,
-					weights.class1=weights.class1,curve=curve,minStepSize=minStepSize);
+						   weights.class1=weights.class1,curve=curve,minStepSize=minStepSize,dg.compute=dg.compute);
 		res<-c(res,list(min=min.res));
 	}
 	if(rand.compute){
@@ -304,121 +254,70 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 	
 	class(res)<-"PRROC";
 	res
+	
+	
 }
+
+
+
 
 compute.roc<-function( sorted.scores.class0, sorted.scores.class1=sorted.scores.class0, weights.class0 = NULL, 
 					   weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, curve = FALSE,
 					   max.compute=F, min.compute=F, rand.compute=F){
 	
 	if( !is.null(sorted.scores.class1) & ( length(sorted.scores.class0) != length(sorted.scores.class1) | 
-		 suppressWarnings( sum(sorted.scores.class0 != sorted.scores.class1) > 0 ) 
-		) & is.null(weights.class0) & is.null(weights.class1) ){
-			weights.class0<-c(rep(1,length(sorted.scores.class0)),rep(0,length(sorted.scores.class1)));
-			sorted.scores.class0<-c(sorted.scores.class0,sorted.scores.class1);
-			o0<-order(sorted.scores.class0);
-			sorted.scores.class0<-sorted.scores.class0[o0];
-			weights.class0<-weights.class0[o0];
-			weights.class1<-1-weights.class0;
-			sorted.scores.class1<-sorted.scores.class0;
-	}
-	
-	i <- 0; j <- 0; d <- length( sorted.scores.class1 ); m <- length( sorted.scores.class0 );
-	fn <- 0; tn <- 0;
-	
-	nw0 <- is.null( weights.class0 );
-	nw1 <- is.null( weights.class1 );
-	
-	pos <- ifelse( nw0, m, sum( weights.class0 ) );
-	neg <- ifelse( nw1, d, sum( weights.class1 ) );
-	
-	erg <- 0;
-	ci <- 1;
-	p <- c( 1, 1, min(sorted.scores.class0,sorted.scores.class1) );
-	if( curve ){
-		list.curve <- create.curve( length( sorted.scores.class0 ) + length( sorted.scores.class1 ) );
-		list.curve <- append.to.curve( list.curve, p, ci );
-		ci <- ci + 1;
+										   suppressWarnings( sum(sorted.scores.class0 != sorted.scores.class1) > 0 ) 
+	) & is.null(weights.class0) & is.null(weights.class1) ){
+		weights.class0<-c(rep(1,length(sorted.scores.class0)),rep(0,length(sorted.scores.class1)));
+		sorted.scores.class0<-c(sorted.scores.class0,sorted.scores.class1);
+		o0<-order(sorted.scores.class0);
+		sorted.scores.class0<-sorted.scores.class0[o0];
+		weights.class0<-weights.class0[o0];
+		weights.class1<-1-weights.class0;
+		sorted.scores.class1<-sorted.scores.class0;
+		
+		all.scores<-sorted.scores.class0;
+		all.weights.pos<-weights.class0;
+		all.weights.neg<-weights.class1;
 	}else{
-		list.curve <- NULL;
-	}
-	
-	unique <- F; from.motif <- F;
-	if( sorted.scores.class0[ i + 1 ] == sorted.scores.class1[ j + 1 ] ){
-		unique <- F;
-	}else{
-		unique <- T;
-		if( sorted.scores.class0[ i + 1 ] < sorted.scores.class1[ j + 1 ] ){
-			from.motif <- T;
-		}else{
-			from.motif <- F;
+		if(is.null(weights.class0)){
+			weights.class0<-rep(1,length(sorted.scores.class0))
 		}
-	}
-	
-	while( i < m & j < d ){
-		score <- 0;
-		if( unique ){
-			if( from.motif ){
-				while( i < m & sorted.scores.class0[ i + 1 ] < sorted.scores.class1[ j + 1 ] ){
-					fn <- fn + ifelse( nw0, 1, weights.class0[ i + 1 ] );
-					score <- sorted.scores.class0[ i + 1 ];
-					i <- i + 1;
-				}
-				
-			}else{
-				while( j < d & sorted.scores.class0[ i + 1 ] > sorted.scores.class1[ j + 1 ] ){
-					tn <- tn + ifelse( nw1, 1, weights.class1[ j + 1 ] );
-					score <- sorted.scores.class1[ j + 1 ];
-					j <- j + 1;
-				}
-				#score <- sorted.scores.class0[ i + 1 ];
-			}
-		}else{
-			while( i + 1 < m & sorted.scores.class0[ i + 1 ] == sorted.scores.class0[ i + 2 ] ){
-				fn <- fn + ifelse( nw0, 1, weights.class0[ i + 1 ] );
-				i <- i + 1;
-			}
-			while( j + 1 < d & sorted.scores.class1[ j + 1 ] == sorted.scores.class1[ j + 2 ]){
-				tn <- tn + ifelse( nw1, 1, weights.class1[ j + 1 ] );
-				j <- j + 1;
-			}
-			fn <- fn + ifelse( nw0, 1, weights.class0[ i + 1 ] );
-			tn <- tn + ifelse( nw1, 1, weights.class1[ j + 1 ] );
-			i <- i + 1;
-			j <- j + 1;
-			score <- sorted.scores.class0[ i ];
+		if(is.null(weights.class1)){
+			weights.class1<-rep(1,length(sorted.scores.class1))
 		}
 		
-		help1 <- ( neg - tn ) / neg;
-		help2 <- ( pos - fn ) / pos;
-		erg <- erg + ( p[ 2 ] + help2 ) / 2 * ( p[ 1 ] - help1 );
-		p <- c( help1, help2, score );
-		if(curve){
-			list.curve <- append.to.curve( list.curve, p, ci );
-			ci <- ci + 1;
-		}
-		
-		if( i < m & j < d ){
-			if( sorted.scores.class0[ i + 1 ] == sorted.scores.class1[ j + 1 ] ){
-				unique <- F;
-			}else{
-				unique <- T;
-				if( sorted.scores.class0[ i + 1 ] < sorted.scores.class1[ j + 1 ] ){
-					from.motif <- T;
-				}else{
-					from.motif <- F;
-				}
-			}
-		}
+		all.scores<-c(sorted.scores.class0,sorted.scores.class1);
+		all.weights.pos<-c(weights.class0,rep(0,length(sorted.scores.class1)));
+		all.weights.neg<-c(rep(0,length(sorted.scores.class0)),weights.class1);
 	}
 	
+
+	o<-order(all.scores,decreasing = T);
+	all.scores<-all.scores[o]
+	all.weights.pos<-all.weights.pos[o];
+	all.weights.neg<-all.weights.neg[o];
+	
+	cum.weights.pos<-cumsum(all.weights.pos);
+	cum.weights.neg<-cumsum(all.weights.neg);
+	cum.use<-c(all.scores[-length(all.scores)]!=all.scores[-1],TRUE)
+	
+	all.scores<-all.scores[cum.use]
+	cum.weights.pos<-cum.weights.pos[cum.use];
+	cum.weights.neg<-cum.weights.neg[cum.use];
+	
+	r.fg<-sum(all.weights.pos);
+	r.bg<-sum(all.weights.neg);
+	
+	sns<-c(0,cum.weights.pos/r.fg);
+	fprs<-c(0,cum.weights.neg/r.bg);
+	
+	erg<-sum( (fprs[-1]-fprs[-length(fprs)]) * ( sns[-1]+sns[-length(sns)] )/2 );
+	
+	list.curve<-NULL;
 	if(curve){
-		p <- c( 0, 0, max( sorted.scores.class0, sorted.scores.class1 ) );
-		list.curve <- append.to.curve( list.curve, p, ci );
-		ci <- ci + 1;
-		list.curve<-shrink.curve( list.curve );
-		list.curve<-rbind(c(list.curve[1,1],list.curve[1,2],min(sorted.scores.class0,sorted.scores.class1)),
-						  list.curve,
-						  c(list.curve[nrow(list.curve),1],list.curve[nrow(list.curve),2],max(sorted.scores.class0,sorted.scores.class1)))
+		list.curve<-cbind(fprs,sns,c(all.scores,all.scores[length(all.scores)]))
+		dimnames(list.curve)<-c(NULL,NULL);
 	}
 	res<-list( type = "ROC", auc = erg, curve=list.curve );
 	
@@ -438,7 +337,7 @@ compute.roc<-function( sorted.scores.class0, sorted.scores.class1=sorted.scores.
 		}
 		
 		max.res<-roc.curve( scores.class0=scores0, scores.class1=scores1,weights.class0=weights.class0,
-							 weights.class1=weights.class1,curve=curve);
+							weights.class1=weights.class1,curve=curve);
 		res<-c(res,list(max=max.res));
 	}
 	
@@ -457,7 +356,7 @@ compute.roc<-function( sorted.scores.class0, sorted.scores.class1=sorted.scores.
 		}
 		
 		min.res<-roc.curve( scores.class0=scores0, scores.class1=scores1,weights.class0=weights.class0,
-							 weights.class1=weights.class1,curve=curve);
+							weights.class1=weights.class1,curve=curve);
 		res<-c(res,list(min=min.res));
 	}
 	if(rand.compute){
@@ -475,13 +374,7 @@ compute.roc<-function( sorted.scores.class0, sorted.scores.class1=sorted.scores.
 	res	
 }
 
-shrink.curve <- function( curve ){
-	if( is.null( curve ) ){
-		curve;
-	}else{
-		curve[ !is.na( curve[ , 1 ] ), ];
-	}
-}
+
 
 create.curve <- function( n ){
 	m <- matrix( NA, nrow=n, ncol=3 );

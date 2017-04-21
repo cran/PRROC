@@ -69,6 +69,7 @@ In this case, the classification scores for all data points need to be provided 
 \references{
 J. Keilwagen, I. Grosse, and J. Grau. Area under precision-recall curves for weighted and unweighted data, PLOS ONE (9) 3, 2014.
 
+J. Grau, I. Grosse, and J. Keilwagen. PRROC: computing and visualizing precision-recall and receiver operating characteristic curves in R. Bioinformatics, 31(15):2595-2597, 2015.
 }
 \author{
 Jan Grau and Jens Keilwagen

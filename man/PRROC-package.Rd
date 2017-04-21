@@ -10,9 +10,9 @@ This package computes the areas under the precision-recall (PR) and receiver ope
 \tabular{ll}{
 Package: \tab PRROC\cr
 Type: \tab Package\cr
-Version: \tab 1.0\cr
-Date: \tab 2014-11-04\cr
-License: \tab \href{http://www.r-project.org/Licenses/GPL-3}{GPL-3}\cr
+Version: \tab 1.3\cr
+Date: \tab 2017-04-21\cr
+License: \tab \href{https://www.r-project.org/Licenses/GPL-3}{GPL-3}\cr
 }
 
 }
@@ -28,6 +28,8 @@ In \emph{Proceedings of the 23rd International Conference on Machine Learning}, 
 T. Fawcett, An introduction to ROC analysis, Pattern Recognition Letters (27) 8, 861-874, 2006.
 
 J. Keilwagen, I. Grosse, and J. Grau. Area under precision-recall curves for weighted and unweighted data, PLOS ONE (9) 3, 2014.
+
+J. Grau, I. Grosse, and J. Keilwagen. PRROC: computing and visualizing precision-recall and receiver operating characteristic curves in R. Bioinformatics, 31(15):2595-2597, 2015.
 }
 \keyword{ package }
 \seealso{

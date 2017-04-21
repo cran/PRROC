@@ -69,7 +69,7 @@ test_that("ROC curve - perfect, hard-labeled",{
 	scores1<-c(-1)
 	curve<-roc.curve(scores.class0 = scores0, scores.class1 = scores1,curve=T)$curve
 	curve<-unique(curve);
-	expect_that(curve,equals(matrix(c(1,0,0,1,1,0,-1,-1,1),nrow=3)))
+	expect_that(curve,equals(matrix(c(0,0,1,0,1,1,1,-1,-1),nrow=3)))
 })
 
 

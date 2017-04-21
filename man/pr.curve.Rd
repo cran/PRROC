@@ -14,7 +14,7 @@ pr.curve( scores.class0, scores.class1=scores.class0, weights.class0=NULL,
     weights.class1 = {if(is.null(weights.class0)){NULL}else{1-weights.class0}}, 
     sorted = FALSE, curve = FALSE, 
     minStepSize=min(1,ifelse(is.null(weights.class0),1,sum(weights.class0)/100)),
-    max.compute=F, min.compute=F, rand.compute=F)
+    max.compute=F, min.compute=F, rand.compute=F,dg.compute=T)
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -36,6 +36,7 @@ pr.curve( scores.class0, scores.class1=scores.class0, weights.class0=NULL,
   \item{max.compute}{\code{TRUE} if the maximum PR curve given the supplied weights should be computed}
   \item{min.compute}{\code{TRUE} if the minimum PR curve given the supplied weights should be computed}
   \item{rand.compute}{\code{TRUE} if the PR curve of a random classifier given the supplied weights should be computed}
+  \item{dg.compute}{\code{TRUE} if the area under the curve according to the interpolation of Davis and Goadrich should be computed. Reduces runtime if switched off.}
 }
 \details{
 
@@ -78,6 +79,7 @@ In \emph{Proceedings of the 23rd International Conference on Machine Learning}, 
 
 J. Keilwagen, I. Grosse, and J. Grau. Area under precision-recall curves for weighted and unweighted data, PLOS ONE (9) 3, 2014.
 
+J. Grau, I. Grosse, and J. Keilwagen. PRROC: computing and visualizing precision-recall and receiver operating characteristic curves in R. Bioinformatics, 31(15):2595-2597, 2015.
 }
 \author{
 Jan Grau and Jens Keilwagen

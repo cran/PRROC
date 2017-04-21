@@ -1,2 +1,2 @@
 library(testthat)
-test_package("PRROC")
+test_check("PRROC")

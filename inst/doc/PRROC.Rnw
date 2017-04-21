@@ -38,6 +38,7 @@ set.seed(127)
 This package computes the areas under the precision-recall (PR) and ROC curve for weighted (e.g., soft-labeled) and unweighted data. In contrast to other implementations, the interpolation between points of the PR curve is done by a non-linear piecewise function. In addition to the areas under the curves, the curves themselves can also be computed and plotted by a specific S3-method.
 Users should be aware of the small sample size problem~\cite{Hanczar10small-sample}.
 
+\emph{We thank Toby Dylan Hocking for suggesting the use of \texttt{cumsum} for computing ROC and PR curves.}
 \section{ROC and PR curves for hard-labeled data}
 
 We first consider an example, where the classification task is to distinguish data points originating from two different classes (termed positive/negative or foreground/background). In the example, we assume that the test data set contains 300 data points from the foreground (positive) and 500 data points from the background (negative) class.

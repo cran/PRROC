@@ -25,7 +25,7 @@ test_that("AUC-PR - class and fields",{
 	expect_that(auc.curve,is_a("PRROC"))
 	expect_that(auc.curve$type,matches("PR"))
 	expect_that(auc.curve$curve,is_a("matrix"))
-	expect_that(dim(auc.curve$curve),equals(c(3,3)))
+	expect_that(dim(unique(auc.curve$curve)),equals(c(3,3)))
 	expect_that(auc.curve$auc.integral,is_a("numeric"))
 	expect_that(auc.curve$auc.davis.goadrich,is_a("numeric"))
 	
@@ -33,7 +33,7 @@ test_that("AUC-PR - class and fields",{
 	expect_that(auc.curve,is_a("PRROC"))
 	expect_that(auc.curve$type,matches("PR"))
 	expect_that(auc.curve$curve,is_a("matrix"))
-	expect_that(dim(auc.curve$curve),equals(c(3,3)))
+	expect_that(dim(unique(auc.curve$curve)),equals(c(3,3)))
 	expect_that(auc.curve$auc.integral,is_a("numeric"))
 	expect_that(auc.curve$auc.davis.goadrich,is_a("numeric"))
 	expect_that(auc.curve$max,is_a("PRROC"))
