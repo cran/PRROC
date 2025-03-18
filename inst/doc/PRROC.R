@@ -281,39 +281,79 @@ plot(wpr, rand.plot = TRUE, fill.area = TRUE,
 
 
 ###################################################
-### code chunk number 43: PRROC.Rnw:339-340
-###################################################
-curve.points<-wpr$curve
-
-
-###################################################
-### code chunk number 44: PRROC.Rnw:344-345
-###################################################
-curve.points[1:5,]
-
-
-###################################################
-### code chunk number 45: plot6
-###################################################
-plot(curve.points[,1],curve.points[,2],
-	 xlab="Recall",ylab="Precision",t="l")
-
-
-###################################################
-### code chunk number 46: PRROC.Rnw:358-359
-###################################################
-plot(curve.points[,1],curve.points[,2],
-	 xlab="Recall",ylab="Precision",t="l")
-
-
-###################################################
-### code chunk number 47: PRROC.Rnw:365-366
+### code chunk number 43: PRROC.Rnw:340-341
 ###################################################
 library(ggplot2)
 
 
 ###################################################
-### code chunk number 48: plot7
+### code chunk number 44: plot8
+###################################################
+
+pl <- ggprroc( wpr, max.plot = TRUE, min.plot = TRUE, 
+               rand.plot = TRUE, fill.area=TRUE )
+pl
+
+
+###################################################
+### code chunk number 45: PRROC.Rnw:352-353
+###################################################
+
+pl <- ggprroc( wpr, max.plot = TRUE, min.plot = TRUE, 
+               rand.plot = TRUE, fill.area=TRUE )
+pl
+
+
+###################################################
+### code chunk number 46: plot9
+###################################################
+pl + scale_color_viridis_c(option="D",name="Some score") +
+      xlab("Sensitivity")+
+      theme_gray()
+
+
+###################################################
+### code chunk number 47: PRROC.Rnw:367-368
+###################################################
+pl + scale_color_viridis_c(option="D",name="Some score") +
+      xlab("Sensitivity")+
+      theme_gray()
+
+
+###################################################
+### code chunk number 48: PRROC.Rnw:375-376
+###################################################
+curve.points<-wpr$curve
+
+
+###################################################
+### code chunk number 49: PRROC.Rnw:380-381
+###################################################
+curve.points[1:5,]
+
+
+###################################################
+### code chunk number 50: plot6
+###################################################
+plot(curve.points[,1],curve.points[,2],
+	 xlab="Recall",ylab="Precision",t="l")
+
+
+###################################################
+### code chunk number 51: PRROC.Rnw:394-395
+###################################################
+plot(curve.points[,1],curve.points[,2],
+	 xlab="Recall",ylab="Precision",t="l")
+
+
+###################################################
+### code chunk number 52: PRROC.Rnw:401-402
+###################################################
+library(ggplot2)
+
+
+###################################################
+### code chunk number 53: plot7
 ###################################################
 ( 
 ggplot(data.frame(wpr$curve),aes(x=X1,y=X2,color=X3)) 
@@ -326,7 +366,7 @@ ggplot(data.frame(wpr$curve),aes(x=X1,y=X2,color=X3))
 
 
 ###################################################
-### code chunk number 49: PRROC.Rnw:381-382
+### code chunk number 54: PRROC.Rnw:417-418
 ###################################################
 ( 
 ggplot(data.frame(wpr$curve),aes(x=X1,y=X2,color=X3)) 

@@ -172,7 +172,7 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 		idxs<-which((tp-tp.prev)/r.fg>minStepSize.2 & tp/(tp+fp)!=tp.prev/(tp.prev+fp.prev))
 	#	idxs<-which((tp-tp.prev)/r.fg>minStepSize)
 		idxs<-idxs[ idxs>1 ];
-	#	print(idxs)
+		#print(idxs)
 		if(length(idxs)>0){
 			m<-sapply(idxs,function(i){
 				x<-seq(0,min.curve[i,1]-min.curve[i-1,1],by = minStepSize.2);
@@ -188,7 +188,10 @@ compute.pr <- function( sorted.scores.class0, sorted.scores.class1=sorted.scores
 		}else{
 			m<-min.curve
 		}
+
 		m<-m[ order(m[,1],-m[,3],decreasing = T), ]
+		m<-matrix(m,ncol=3)
+
 		m<-rbind(c(1,m[1,2:3]),m,c(0,m[nrow(m),2:3]))
 		
 		dimnames(m)<-c(NULL,NULL)
@@ -461,6 +464,94 @@ print.PRROC<-function(x,...){
 }
 
 
+ggprroc<-function(x, auc.main=TRUE, auc.type=c("integral","davis.goadrich"),
+                  xlab=NULL,ylab=NULL,
+                  main=NULL,
+                  max.plot = FALSE, min.plot = FALSE, rand.plot = FALSE,
+                  fill.area = (max.plot & min.plot)){
+  if( suppressWarnings( requireNamespace("ggplot2",quietly = T) ) ){
+    auc.type<-match.arg(auc.type);
+    if(is.null(x$curve)){
+      stop("Curve is NULL. Use curve=T in pr.curve or roc.curve to obtain one.");
+    }
+    if(ncol(x$curve) != 3){
+      stop("Curve has wrong dimension");
+    }
+    if(is.null(xlab)){
+      my.xlab<-ifelse(x$type=="PR","Recall","FPR");
+    }else{
+      my.xlab<-xlab;
+    }
+    if(is.null(ylab)){
+      my.ylab<-ifelse(x$type=="PR","Precision","Sensitivity");
+    }else{
+      my.ylab<-ylab;
+    }
+    
+    if(is.null(main)){
+      my.main<-paste(x$type," curve",sep="",collapse="");
+    }else{
+      my.main<-main;
+    }
+    if(auc.main){
+      my.main<-paste(my.main,"\nAUC = ",format(ifelse(x$type=="PR",ifelse(auc.type=="integral",x$auc.integral,x$auc.davis.goadrich),x$auc)),sep="",collapse="");
+    }
+    
+    curve <- data.frame(x$curve)
+    colnames(curve)<-c("x","y","score")
+    curve<-curve[nrow(curve):1,]
+    
+    pl<-ggplot2::ggplot(curve,ggplot2::aes(x=.data$x,y=.data$y))
+    
+    
+    if( fill.area & !is.null(x$max) & !is.null(x$min)){
+      xs<-c(x$min$curve[,1],x$max$curve[nrow(x$max$curve):1,1],x$min$curve[1,1]);
+      ys<-c(x$min$curve[,2],x$max$curve[nrow(x$max$curve):1,2],x$min$curve[1,2]);
+      pol.df<-data.frame(x=xs,y=ys)
+      pl <- pl +
+        ggplot2::geom_polygon(data=pol.df,ggplot2::aes(x=.data$x,y=.data$y),fill="grey95",linewidth=0)
+      #polygon( x = xs, y = ys, density = -1, border = NA, col = fill.color );
+    }
+    
+    if(max.plot & !is.null(x$max)){
+      curve.max<-data.frame(x$max$curve)
+      curve.max<-curve.max[nrow(curve.max):1,]
+      colnames(curve.max)<-c("x","y","score")
+      pl <- pl +
+        ggplot2::geom_line(data=curve.max,ggplot2::aes(x=.data$x,y=.data$y),color="grey", linewidth=1,linetype="dashed")
+    }
+    if(min.plot & !is.null(x$min)){
+      curve.min<-data.frame(x$min$curve)
+      curve.min<-curve.min[nrow(curve.min):1,]
+      colnames(curve.min)<-c("x","y","score")
+      pl <- pl +
+        ggplot2::geom_line(data=curve.min,ggplot2::aes(x=.data$x,y=.data$y),color="grey", linewidth=1,linetype="dotted")
+    }
+    if(rand.plot & !is.null(x$rand)){
+      curve.rand<-data.frame(x$rand$curve)
+      curve.rand<-curve.rand[nrow(curve.rand):1,]
+      curve.rand<-curve.rand[!is.na(curve.rand[,1]),]
+      colnames(curve.rand)<-c("x","y","score")
+      pl <- pl +
+        ggplot2::geom_line(data=curve.rand,ggplot2::aes(x=.data$x,y=.data$y),color="grey", linewidth=1,linetype="dotdash")
+    }
+    
+    
+    pl<- pl + ggplot2::geom_line(ggplot2::aes(color=.data$score),linewidth=1)+
+      ggplot2::scale_color_viridis_c(option="H",name="Score")+
+      ggplot2::xlim(0,1)+
+      ggplot2::ylim(0,1)+
+      ggplot2::xlab(my.xlab)+
+      ggplot2::ylab(my.ylab)+
+      ggplot2::ggtitle(my.main)+
+      ggplot2::theme_bw()
+    return(pl)
+  }else{
+    stop("ggplot2 required for calling ggprroc.")
+  }
+}
+
+
 plot.PRROC<-function(x, xlim=c(0,1), ylim=c(0,1), auc.main=TRUE, auc.type=c("integral","davis.goadrich"), 
 					 legend=ifelse(is.logical(color) & color==TRUE,4,NA), xlab=NULL, ylab=NULL, main=NULL, color=TRUE, lwd=3, 
 					 add=FALSE, scale.color=hsv(h=seq(0,1,length=100)*0.8, s=1, v=1), 
@@ -517,6 +608,10 @@ plot.PRROC<-function(x, xlim=c(0,1), ylim=c(0,1), auc.main=TRUE, auc.type=c("int
 		if(color){
 			min<-min(x[,3]);
 			max<-max(x[,3]);
+			if(min==max){
+			  min <- min-min*0.1
+			  max <- max+min*0.1
+			}
 	
 			cols<-getColor( scale.color, x[,3], min, max );
 			plotscale.color=T;

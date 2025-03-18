@@ -1,5 +1,13 @@
 context("PRROC-PR")
 
+test_that("AUC-PR - one score value",{
+  scores<-rep(1,500)
+  labels<-rep(c(0,1),250)
+  auc<-pr.curve(scores.class0 = scores,weights.class0 = labels)
+  auc.in<-auc$auc.integral
+  expect_that(auc.in,equals(0.5))
+})
+
 test_that("AUC-PR - perfect, hard-labeled",{
 	scores0<-runif(100);
 	scores1<-(-runif(100));
@@ -16,14 +24,14 @@ test_that("AUC-PR - class and fields",{
 	scores1<-c(-1);
 	auc<-pr.curve(scores.class0 = scores0, scores.class1 = scores1)
 	expect_that(auc,is_a("PRROC"))
-	expect_that(auc$type,matches("PR"))
+	expect_match(auc$type,"PR")
 	expect_that(auc$curve,equals(NULL))
 	expect_that(auc$auc.integral,is_a("numeric"))
 	expect_that(auc$auc.davis.goadrich,is_a("numeric"))
 	
 	auc.curve<-pr.curve(scores.class0 = scores0, scores.class1 = scores1, curve = TRUE)
 	expect_that(auc.curve,is_a("PRROC"))
-	expect_that(auc.curve$type,matches("PR"))
+	expect_match(auc.curve$type,"PR")
 	expect_that(auc.curve$curve,is_a("matrix"))
 	expect_that(dim(unique(auc.curve$curve)),equals(c(3,3)))
 	expect_that(auc.curve$auc.integral,is_a("numeric"))
@@ -31,17 +39,17 @@ test_that("AUC-PR - class and fields",{
 	
 	auc.curve<-pr.curve(scores.class0 = scores0, scores.class1 = scores1, curve = T, max.compute = T, min.compute = T, rand.compute = T);
 	expect_that(auc.curve,is_a("PRROC"))
-	expect_that(auc.curve$type,matches("PR"))
+	expect_match(auc.curve$type,"PR")
 	expect_that(auc.curve$curve,is_a("matrix"))
 	expect_that(dim(unique(auc.curve$curve)),equals(c(3,3)))
 	expect_that(auc.curve$auc.integral,is_a("numeric"))
 	expect_that(auc.curve$auc.davis.goadrich,is_a("numeric"))
 	expect_that(auc.curve$max,is_a("PRROC"))
-	expect_that(auc.curve$max$type,matches("PR"))
+	expect_match(auc.curve$max$type,"PR")
 	expect_that(auc.curve$min,is_a("PRROC"))
-	expect_that(auc.curve$min$type,matches("PR"))
+	expect_match(auc.curve$min$type,"PR")
 	expect_that(auc.curve$rand,is_a("PRROC"))
-	expect_that(auc.curve$rand$type,matches("PR"))
+	expect_match(auc.curve$rand$type,"PR")
 })
 
 test_that("AUC-PR - worst, hard-labeled",{

@@ -3,9 +3,9 @@ citHeader("To cite package 'PRROC' in publications use:")
      year <- sub(".*(2[[:digit:]]{3})-.*", "\\1", meta$Date, perl = TRUE)
      vers <- paste("R package version", meta$Version)
      
-     citEntry(entry="article",
+     bibentry(bibtype="article",
               title = "Area under Precision-Recall Curves for Weighted and Unweighted Data",
-              author = personList(as.person("Jens Keilwagen"),
+              author = c(as.person("Jens Keilwagen"),
                                   as.person("Ivo Grosse"),
                                   as.person("Jan Grau")),
               year = 2014,
@@ -16,9 +16,9 @@ citHeader("To cite package 'PRROC' in publications use:")
               )
                     
                     
-     citEntry(entry="article",
+     bibentry(bibtype="article",
               title = "PRROC: computing and visualizing precision-recall and receiver operating characteristic curves in R",
-              author = personList(as.person("Jan Grau"),
+              author = c(as.person("Jan Grau"),
                                   as.person("Ivo Grosse"),
                                   as.person("Jens Keilwagen")),
               year = 2015,

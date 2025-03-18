@@ -1,5 +1,13 @@
 context("PRROC-ROC")
 
+test_that("AUC-ROC - one score value",{
+  scores<-rep(1,500)
+  labels<-rep(c(0,1),250)
+  auc<-roc.curve(scores.class0 = scores,weights.class0 = labels)
+  auc.in<-auc$auc
+  expect_that(auc.in,equals(0.5))
+})
+
 test_that("AUC-ROC - perfect, hard-labeled",{
 	scores0<-runif(100);
 	scores1<-(-runif(100));
@@ -13,29 +21,29 @@ test_that("AUC-ROC - class and fields",{
 	scores1<-c(-1);
 	auc<-roc.curve(scores.class0 = scores0, scores.class1 = scores1)
 	expect_that(auc,is_a("PRROC"))
-	expect_that(auc$type,matches("ROC"))
+	expect_match(auc$type,"ROC")
 	expect_that(auc$curve,equals(NULL))
 	expect_that(auc$auc,is_a("numeric"))
 	
 	auc.curve<-roc.curve(scores.class0 = scores0, scores.class1 = scores1, curve = TRUE)
 	expect_that(auc.curve,is_a("PRROC"))
-	expect_that(auc.curve$type,matches("ROC"))
+	expect_match(auc.curve$type,"ROC")
 	expect_that(auc.curve$curve,is_a("matrix"))
 	expect_that(dim(unique( auc.curve$curve ) ),equals(c(3,3)))
 	expect_that(auc.curve$auc,is_a("numeric"))
 	
 	auc.curve<-roc.curve(scores.class0 = scores0, scores.class1 = scores1, curve = T, max.compute = T, min.compute = T, rand.compute = T);
 	expect_that(auc.curve,is_a("PRROC"))
-	expect_that(auc.curve$type,matches("ROC"))
+	expect_match(auc.curve$type,"ROC")
 	expect_that(auc.curve$curve,is_a("matrix"))
 	expect_that(dim( unique(auc.curve$curve) ),equals(c(3,3)))
 	expect_that(auc.curve$auc,is_a("numeric"))
 	expect_that(auc.curve$max,is_a("PRROC"))
-	expect_that(auc.curve$max$type,matches("ROC"))
+	expect_match(auc.curve$max$type,"ROC")
 	expect_that(auc.curve$min,is_a("PRROC"))
-	expect_that(auc.curve$min$type,matches("ROC"))
+	expect_match(auc.curve$min$type,"ROC")
 	expect_that(auc.curve$rand,is_a("PRROC"))
-	expect_that(auc.curve$rand$type,matches("ROC"))
+	expect_match(auc.curve$rand$type,"ROC")
 })
 
 test_that("AUC-ROC - worst, hard-labeled",{

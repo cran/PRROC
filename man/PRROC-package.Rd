@@ -10,8 +10,8 @@ This package computes the areas under the precision-recall (PR) and receiver ope
 \tabular{ll}{
 Package: \tab PRROC\cr
 Type: \tab Package\cr
-Version: \tab 1.3\cr
-Date: \tab 2017-04-21\cr
+Version: \tab 1.4\cr
+Date: \tab 2025-03-15\cr
 License: \tab \href{https://www.r-project.org/Licenses/GPL-3}{GPL-3}\cr
 }
 

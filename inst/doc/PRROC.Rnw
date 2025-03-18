@@ -332,6 +332,42 @@ plot(wpr, rand.plot = TRUE, fill.area = TRUE,
 @
 \end{center}
 
+\section{Plotting curves using ggplot2}
+
+The function \texttt{ggprroc} provides basic functionality to plot ROC and PR curves within the ggplot2 ecosystem.
+The style of the plot is adapted to roughly match \texttt{plot.PRROC}.
+
+<<echo=FALSE>>=
+library(ggplot2)
+@
+
+<<label=plot8>>=
+
+pl <- ggprroc( wpr, max.plot = TRUE, min.plot = TRUE, 
+               rand.plot = TRUE, fill.area=TRUE )
+pl
+@
+
+\begin{center}
+<<fig=TRUE,echo=FALSE>>=
+<<plot8>>
+@
+\end{center}
+
+
+Alternative themes, colour scales etc. may be added to the plot using \texttt{ggplot2} mechanisms.
+
+<<label=plot9>>=
+pl + scale_color_viridis_c(option="D",name="Some score") +
+      xlab("Sensitivity")+
+      theme_gray()
+@
+
+\begin{center}
+<<fig=TRUE,echo=FALSE>>=
+<<plot9>>
+@
+\end{center}
 
 \section{Plotting curves using other plot packages}
 
